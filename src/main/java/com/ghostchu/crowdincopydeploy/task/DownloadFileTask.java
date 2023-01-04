@@ -4,17 +4,13 @@ import com.ghostchu.crowdincopydeploy.exception.UnirestRequestException;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
-import lukfor.progress.tasks.ITaskRunnable;
-import lukfor.progress.tasks.monitors.ITaskMonitor;
+import me.tongfei.progressbar.ProgressBar;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DownloadFileTask implements ITaskRunnable {
+public class DownloadFileTask implements Runnable {
     private final String url;
     private final File to;
-    private final AtomicBoolean started = new AtomicBoolean(false);
-    private long lastWritten = 0;
 
     public DownloadFileTask(String url, File to) {
         this.url = url;
@@ -22,16 +18,13 @@ public class DownloadFileTask implements ITaskRunnable {
     }
 
     @Override
-    public void run(ITaskMonitor monitor) throws Exception {
-        try (UnirestInstance downloadInstance = Unirest.spawnInstance()) {
+    public void run() {
+        try (UnirestInstance downloadInstance = Unirest.spawnInstance();
+             ProgressBar pb = new ProgressBar("Downloading", 1)) {
             HttpResponse<File> download = downloadInstance.get(url)
                     .downloadMonitor(((field, fileName, bytesWritten, totalBytes) -> {
-                        if (!started.get()) {
-                            monitor.begin("Downloading from " + url, totalBytes);
-                        } else {
-                            monitor.worked(bytesWritten - lastWritten);
-                            lastWritten = bytesWritten;
-                        }
+                        pb.maxHint(totalBytes);
+                        pb.stepTo(bytesWritten);
                     }))
                     .asFile(to.getPath());
             downloadInstance.shutDown();

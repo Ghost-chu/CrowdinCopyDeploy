@@ -1,7 +1,6 @@
 package com.ghostchu.crowdincopydeploy.task;
 
-import lukfor.progress.tasks.ITaskRunnable;
-import lukfor.progress.tasks.monitors.ITaskMonitor;
+import me.tongfei.progressbar.ProgressBar;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 
-public class UnzipFileTask implements ITaskRunnable {
+public class UnzipFileTask implements Runnable {
     public UnzipFileTask(File file, File target) {
         this.file = file;
         this.target = target;
@@ -21,9 +20,9 @@ public class UnzipFileTask implements ITaskRunnable {
     private final File file;
     private final File target;
     @Override
-    public void run(ITaskMonitor monitor) throws Exception {
-        try (ZipFile zipFile = new ZipFile(file)) {
-            monitor.begin("Unzipping File",getSize(zipFile));
+    public void run() {
+        try (ZipFile zipFile = new ZipFile(file); ProgressBar pb = new ProgressBar("Unzipping", 1)) {
+               pb.maxHint(getSize(zipFile));
             byte[] buffer = new byte[4096];
             ZipArchiveEntry entry;
             Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
@@ -31,7 +30,7 @@ public class UnzipFileTask implements ITaskRunnable {
             while (entries.hasMoreElements()) {
                 entry = entries.nextElement();
                 if (entry.isDirectory()) {
-                    monitor.worked(1);
+                    pb.step();
                     continue;
                 }
                 File outputFile = new File(target, entry.getName());
@@ -46,7 +45,7 @@ public class UnzipFileTask implements ITaskRunnable {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                monitor.worked(1);
+                pb.step();
             }
         } catch (IOException e) {
             throw new IllegalStateException("Cannot unzip file " + file.getName(), e);

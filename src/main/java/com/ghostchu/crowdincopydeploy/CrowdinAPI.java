@@ -14,8 +14,7 @@ import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONObject;
-import lukfor.progress.TaskService;
-import lukfor.progress.tasks.TaskStatus;
+import me.tongfei.progressbar.ProgressBar;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -87,9 +86,7 @@ public class CrowdinAPI {
                 .getId();
         LOG.info("Translation build started with build id: {}", buildId);
         TranslationBuildMonitorTask work = new TranslationBuildMonitorTask(client, projectId, buildId);
-        TaskStatus status = TaskService.run(work).get(0).getStatus();
-        if(status.getThrowable() != null)
-            throw new IllegalStateException(status.getThrowable());
+        work.run();
         if (!work.getLastStatus().equalsIgnoreCase("finished")) {
             throw new IllegalStateException("Incomplete translation build: " + work.getLastStatus());
         }
@@ -117,12 +114,8 @@ public class CrowdinAPI {
                 .downloadProjectTranslations(projectId, buildId)
                 .getData();
         LOG.info("Downloading translations zip from {} to {}... (expires in {})", link.getUrl(), saveTo.getPath(), link.getExpireIn());
-        TaskStatus downloadTaskStatus = TaskService.run(new DownloadFileTask(link.getUrl(), saveTo)).get(0).getStatus();
-        if(downloadTaskStatus.getThrowable() != null)
-            throw new IllegalStateException(downloadTaskStatus.getThrowable());
-        TaskStatus uncompressTaskStatus = TaskService.run(new UnzipFileTask(saveTo,uncompressTo)).get(0).getStatus();
-        if(uncompressTaskStatus.getThrowable() != null)
-            throw new IllegalStateException(uncompressTaskStatus.getThrowable());
+        new DownloadFileTask(link.getUrl(), saveTo).run();
+        new UnzipFileTask(saveTo, uncompressTo).run();
         saveTo.delete();
     }
 
@@ -131,14 +124,13 @@ public class CrowdinAPI {
         Map<String, Map<String, String>> mapping = bakeLanguageMapping(languageMappingRaw);
         Map<String, List<String>> map = new LinkedHashMap<>();
 
-        for (String locale : targetLanguageIds) {
-            LOG.info("Generating for {} locale...", locale);
+        for (String locale : ProgressBar.wrap(targetLanguageIds, "Manifest paths")) {
+            //LOG.info("Generating for {} locale...", locale);
             List<String> list = new ArrayList<>();
             for (String file : manifestGenerateFiles()) {
                 String mappedCode = getMappedLanguageCode(locale, "locale", mapping);
                 String path = "/content" + file.replace("%locale%", mappedCode);
                 list.add(path);
-                LOG.info("File {} with locale {} (mapped to {}) are linked to {} in manifest.", file, locale, map, path);
             }
             map.put(locale, list);
         }
@@ -148,7 +140,7 @@ public class CrowdinAPI {
     @NotNull
     private Map<String, Map<String, String>> bakeLanguageMapping(@NotNull Map<String, Object> languageMappingRaw) {
         Map<String, Map<String, String>> map = new LinkedHashMap<>();
-        for (Map.Entry<String, Object> entry : languageMappingRaw.entrySet()) {
+        for (Map.Entry<String, Object> entry : ProgressBar.wrap(languageMappingRaw.entrySet(), "Bake language mapping")) {
             //noinspection unchecked
             map.put(entry.getKey(), (Map<String, String>) entry.getValue());
         }
@@ -176,7 +168,6 @@ public class CrowdinAPI {
             }
             String pattern = singleFile.getJSONObject("exportOptions").getString("exportPattern");
             String path = "/" + branchName + pattern.replace("%original_file_name%", name);
-            LOG.info("File {} crowdin-like path now generated with exportOptions-pattern {}: {}", name, pattern, path);
             output.add(path);
         }
         return output;

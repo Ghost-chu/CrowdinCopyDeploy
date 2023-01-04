@@ -1,10 +1,7 @@
 package com.ghostchu.crowdincopydeploy;
 
-import com.ghostchu.crowdincopydeploy.task.MoveDirectoryTask;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import lukfor.progress.TaskService;
-import lukfor.progress.tasks.TaskStatus;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -70,11 +67,9 @@ public class CrowdinDeployer {
     private void generateContent() {
         File content = new File(deployPath, "content");
         File branch = new File(content, crowdinAPI.getBranchName());
-        MoveDirectoryTask task = new MoveDirectoryTask(translationTmpUnzipDirectory, branch);
-        TaskStatus status = TaskService.run(task).get(0).getStatus();
-        if(status.getThrowable() != null)
-            throw new IllegalStateException(status.getThrowable());
         try {
+            FileUtils.deleteDirectory(branch);
+            FileUtils.moveDirectory(translationTmpUnzipDirectory, branch);
             FileUtils.deleteDirectory(translationTmpUnzipDirectory);
         } catch (IOException e) {
             throw new IllegalStateException(e);
