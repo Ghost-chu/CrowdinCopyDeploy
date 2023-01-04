@@ -116,7 +116,7 @@ public class CrowdinAPI {
         LOG.info("Downloading translations zip from {} to {}... (expires in {})", link.getUrl(), saveTo.getPath(), link.getExpireIn());
         new DownloadFileTask(link.getUrl(), saveTo).run();
         new UnzipFileTask(saveTo, uncompressTo).run();
-       // saveTo.delete();
+        saveTo.delete();
     }
 
     @NotNull
