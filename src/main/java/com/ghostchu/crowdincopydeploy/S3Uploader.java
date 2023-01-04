@@ -3,6 +3,7 @@ package com.ghostchu.crowdincopydeploy;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.ghostchu.crowdincopydeploy.task.UploadS3Task;
@@ -53,7 +54,8 @@ public class S3Uploader {
         AWSCredentials awsCredentials = new BasicAWSCredentials(s3AccessKeyId, s3AccessToken);
         s3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-                .withRegion(s3Region)
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(s3Endpoint,s3Region))
+                //.withRegion(s3Region)
                 .build();
         if (!s3.doesBucketExistV2(s3Bucket)) {
             throw new IllegalStateException("The bucket " + s3Bucket + " doesn't exists.");
