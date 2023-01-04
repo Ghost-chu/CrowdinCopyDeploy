@@ -54,7 +54,7 @@ public class CrowdinDeployer {
         root.put("languages", crowdinAPI.manifestGenerateLanguages());
         Map<String, Object> languageMapping = crowdinAPI.manifestGenerateLanguageMapping();
         root.put("language_mapping", languageMapping);
-        root.put("custom_languages", Collections.emptyMap());
+        root.put("custom_languages", Collections.emptyList());
         root.put("timestamp", CURRENT_TIME.getEpochSecond());
         root.put("content", crowdinAPI.manifestGenerateContentSections(languageMapping));
         try {
