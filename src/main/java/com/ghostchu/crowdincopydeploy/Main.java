@@ -16,5 +16,6 @@ public class Main {
             new S3Uploader();
         }
         LOG.info("All completed");
+        System.exit(0);
     }
 }

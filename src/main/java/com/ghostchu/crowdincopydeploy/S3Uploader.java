@@ -29,6 +29,11 @@ public class S3Uploader {
         acceptEnvironmentVariable();
         auth();
         upload();
+        shutdown();
+    }
+
+    private void shutdown() {
+        s3.shutdown();
     }
 
     private void acceptEnvironmentVariable() {
