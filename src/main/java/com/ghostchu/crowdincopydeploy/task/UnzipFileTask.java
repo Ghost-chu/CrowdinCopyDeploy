@@ -5,10 +5,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Enumeration;
 
 public class UnzipFileTask implements Runnable {
@@ -22,11 +19,9 @@ public class UnzipFileTask implements Runnable {
     @Override
     public void run() {
         try (ZipFile zipFile = new ZipFile(file); ProgressBar pb = new ProgressBar("Unzipping", 1)) {
-               pb.maxHint(getSize(zipFile));
-            byte[] buffer = new byte[4096];
+            pb.maxHint(getSize(zipFile));
             ZipArchiveEntry entry;
             Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-            InputStream inputStream;
             while (entries.hasMoreElements()) {
                 entry = entries.nextElement();
                 if (entry.isDirectory()) {
@@ -37,11 +32,10 @@ public class UnzipFileTask implements Runnable {
                 if (!outputFile.getParentFile().exists()) {
                     outputFile.getParentFile().mkdirs();
                 }
-                inputStream = zipFile.getInputStream(entry);
+                InputStream inputStream = zipFile.getInputStream(entry);
                 try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                    while (inputStream.read(buffer) > 0) {
-                        fos.write(buffer);
-                    }
+                    fos.write(inputStream.readAllBytes());
+                    fos.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
