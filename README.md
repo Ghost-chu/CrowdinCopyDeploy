@@ -21,4 +21,35 @@ TL;DR 我们超出了免费配额并吃了一张 70 USD 的账单。
 
 ## TODO
 
-* 封装为 GitHub Action
+```yaml
+name: ota-distribution
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Build Translations
+      uses: Ghost-chu/CrowdinCopyDeploy-action@master
+      with:
+        args: uploads3
+      env:
+        CROWDIN_ACCESS_TOKEN: ${{ secrets.CROWDIN_ACCESS_TOKEN }}
+        CROWDIN_PROJECT_BRANCH_ID: ${{ secrets.CROWDIN_BRANCH_ID }}
+        CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+        #DEPLOY_PATH: './deploy-prod'
+        AWS_S3_ENDPOINT: ${{ secrets.AWS_S3_ENDPOINT }}
+        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: auto
+    - name: Purge CloudFlare cache
+      uses: jakejarvis/cloudflare-purge-action@master
+      env:
+        CLOUDFLARE_ZONE: ${{ secrets.CLOUDFLARE_ZONE }}
+        CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+        CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+
+```
