@@ -19,7 +19,7 @@ TL;DR 我们超出了免费配额并吃了一张 70 USD 的账单。
 * CROWDIN_PROJECT_ID - 通过手动请求 Crowdin API 获取
 * DEPLOY_PATH - 部署目录，默认在 `./deploy-target` 下
 
-## TODO
+## Github Actions
 
 ```yaml
 name: ota-distribution
