@@ -15,6 +15,7 @@ import kong.unirest.Unirest;
 import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONObject;
 import me.tongfei.progressbar.ProgressBar;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class CrowdinAPI {
     private List<String> targetLanguageIds;
     private Client client;
     private String branchName;
+    private String localeFormat;
 
     public CrowdinAPI() {
         acceptVariable();
@@ -44,6 +46,10 @@ public class CrowdinAPI {
         Validate.notEmpty(token);
         this.branchId = Long.parseLong(System.getenv("CROWDIN_PROJECT_BRANCH_ID"));
         projectId = Long.parseLong(System.getenv("CROWDIN_PROJECT_ID"));
+        this.localeFormat = System.getenv("LOCALE_FORMAT");
+        if(StringUtils.isEmpty(this.localeFormat)){
+            localeFormat = "locale";
+        }
         LOG.info("Branch Id: {}", branchId);
         LOG.info("Project Id: {}", projectId);
     }
@@ -128,7 +134,7 @@ public class CrowdinAPI {
             //LOG.info("Generating for {} locale...", locale);
             List<String> list = new ArrayList<>();
             for (String file : manifestGenerateFiles()) {
-                String mappedCode = getMappedLanguageCode(locale, "locale", mapping);
+                String mappedCode = getMappedLanguageCode(locale, localeFormat, mapping);
                 String path = "/content" + file.replace("%locale%", mappedCode);
                 list.add(path);
             }
