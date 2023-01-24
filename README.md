@@ -39,6 +39,7 @@ jobs:
         CROWDIN_ACCESS_TOKEN: ${{ secrets.CROWDIN_ACCESS_TOKEN }}
         CROWDIN_PROJECT_BRANCH_ID: ${{ secrets.CROWDIN_BRANCH_ID }}
         CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+        LOCALE_FORMAT: "locale"
         #DEPLOY_PATH: './deploy-prod'
         AWS_S3_ENDPOINT: ${{ secrets.AWS_S3_ENDPOINT }}
         AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
